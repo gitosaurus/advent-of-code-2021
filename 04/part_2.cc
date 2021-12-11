@@ -105,12 +105,10 @@ ostream& operator<< (ostream& out, const BingoBoard& bb) {
 
 
 int main() {
-    string line;
-    getline(cin, line);
+    string line; getline(cin, line);
     transform(line.begin(), line.end(), line.begin(), [](char ch) {return ch == ',' ? ' ' : ch;});
-    list<int> numbers;
     istringstream ss(line);
-    copy(istream_iterator<int>(ss), istream_iterator<int>(), back_inserter(numbers));
+    list<int> numbers; copy(istream_iterator<int>(ss), istream_iterator<int>(), back_inserter(numbers));
 
     list<BingoBoard> boards;
     while (cin) {
