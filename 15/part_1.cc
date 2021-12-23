@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <iterator>
 #include <string>
 #include <vector>
@@ -27,34 +28,34 @@ int main() {
     }
     SHOW(rows);
     SHOW(cols);
-
-    // Idea:  "ripple out" from the upper left, replacing subsections of
-    // the grid with the lowest-risk paths to the edge squares.  It's a form
-    // of memoizing.  And there's no recursion required or anything.  It IS
-    // like CA, on an expanding edge.
-    //
-    // Except that each new edge is the minimum of its horizontal and vertical
-    // neighbors.
     assert(rows == cols);
-    for (int xr = 1, xc = 1; xr < rows && xc < cols; xr++, xc++) {
-        // The outermost edges can ONLY be minimum in one direction.
-        // Topmost edge extension:
-        risks[m(0, xc)] = risks[m(0, xc)] + risks[m(0, xc - 1)];
-        // Leftmost edge extension:
-        risks[m(xr, 0)] = risks[m(xc, 0)] + risks[m(xr - 1, 0)];
-
-        // Propagate non-top vertical edge, xc.
-        for (int ir = 1; ir < xr; ir++) {
-            risks[m(ir, xc)] =
-                risks[m(ir, xc)] + min(risks[m(ir, xc - 1)], risks[m(ir - 1, xc)]);
+    vector<int> nr = risks;
+    int iteration = 0;
+    bool changed; do {
+        changed = false;
+        for (int xr = 0; xr < rows; xr++) {
+            for (int xc = 0; xc < cols; xc++) {
+                if (xr == 0  &&  xc == 0) continue;
+                int least_next = numeric_limits<int>::max();
+                if (xr > 0) least_next = min(least_next, nr[m(xr - 1, xc)]);
+                if (xc > 0) least_next = min(least_next, nr[m(xr, xc - 1)]);
+                if (xr < rows - 1) least_next = min(least_next, nr[m(xr + 1, xc)]);
+                if (xc < cols - 1) least_next = min(least_next, nr[m(xr, xc + 1)]);
+                int next_value = risks[m(xr, xc)] + least_next;
+                if (next_value != nr[m(xr, xc)]) {
+                    nr[m(xr, xc)] = next_value;
+                    changed = true;
+                }
+            }
         }
-        // Propagate non-left horizontal edge, xr.
-        for (int ic = 1; ic < xc; ic++) {
-            risks[m(xr, ic)] =
-                risks[m(xr, ic)] + min(risks[m(xr, ic - 1)], risks[m(xr - 1, ic)]);
+        cout << "Completed iteration " << ++iteration << endl;
+    } while (changed);
+    for (int r = 0; r < rows; r++) {
+        for (int c = 0; c < cols; c++) {
+            cout << setw(3) << nr[m(r, c)];
         }
-        // New corner:
-        risks[m(xr, xc)] = risks[m(xr, xc)] + min(risks[m(xr, xc - 1)], risks[m(xr - 1, xc)]);
+        cout << endl;
     }
-    cout << "Lowest risk at end: " << risks[m(rows - 1, cols - 1)] - risks[m(0, 0)] << endl;
+    cout << endl;
+    cout << "Lowest risk at end: " << nr[m(rows - 1, cols - 1)] - risks[m(0, 0)] << endl;
 }
